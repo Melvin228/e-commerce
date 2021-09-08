@@ -10,7 +10,7 @@ import Review from './Review'
 
 const stripePromise= loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY)
 
-const PaymentForm = ({checkoutToken,backStep,shippingData, onCaptureCheckout,nextStep}) => {
+const PaymentForm = ({checkoutToken,backStep,shippingData, onCaptureCheckout,nextStep,timeout}) => {
     const handleSubmit = async (event,elements,stripe) =>{
         event.preventDefault()
 
@@ -21,7 +21,7 @@ const PaymentForm = ({checkoutToken,backStep,shippingData, onCaptureCheckout,nex
         const {error, paymentMethod} = await stripe.createPaymentMethod({type:'card', card:cardElement})
 
         if(error){
-            console.log(error)
+            console.log('[error]', error)
         }else{
             const orderData = {
                 line_items: checkoutToken.live.line_items,
@@ -36,6 +36,8 @@ const PaymentForm = ({checkoutToken,backStep,shippingData, onCaptureCheckout,nex
                 },
               };
             onCaptureCheckout(checkoutToken.id,orderData)
+
+            timeout()
 
             nextStep()
         }
@@ -52,8 +54,8 @@ const PaymentForm = ({checkoutToken,backStep,shippingData, onCaptureCheckout,nex
                         <CardElement/>
                         <br/> <br/>
                         <div style={{display:'flex', justifyContent:'space-between'}}>
-                            <Button variant="outlined">Back</Button>
-                            <Button type="submit" varaint="contained" disabled={stripe} color="primary" onClick={backStep}>
+                            <Button variant="outlined" onClick={backStep}>Back</Button>
+                            <Button type="submit" variant="contained" disabled={!stripe} color="primary" >
                                 Pay {checkoutToken.live.subtotal.formatted_with_symbol}
                             </Button>
                         </div>
